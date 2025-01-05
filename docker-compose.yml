@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_ubek
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ubek
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db_backup.dump:/backup/db_backup.dump
+    ports:
+      - "5432:5432"
+    entrypoint: >
+      bash -c "
+      docker-entrypoint.sh postgres &
+      echo '🔄 Attendere che PostgreSQL sia pronto...' &&
+      until pg_isready -U admin -d ubek; do
+        sleep 1;
+      done &&
+      echo '✅ PostgreSQL è pronto. Ripristino dei dati...' &&
+      if [ -f /backup/db_backup.dump ]; then
+        pg_restore -U admin -d ubek -v /backup/db_backup.dump &&
+        echo '✅ Dati caricati con successo!';
+      else
+        echo '⚠️ Nessun file di backup trovato in /backup.';
+      fi &&
+      wait"
+      
+volumes:
+  postgres_data:
+
