@@ -1,2 +1,5 @@
 # dev-ubek-db
-Dev database
+
+## command used to start redis container
+
+docker-compose -f docker-redis-compose.yml  up
